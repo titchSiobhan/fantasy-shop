@@ -1,0 +1,37 @@
+[
+  {
+    "Id": 1,
+    "Name": "Health Potion",
+    "Description": "Restores 50 health points",
+    "Price": 19.99,
+    "StockQuantity": 2
+  },
+  {
+    "Id": 2,
+    "Name": "Mana Potion",
+    "Description": "Restores 50 mana points",
+    "Price": 24.99,
+    "StockQuantity": 3
+  },
+  {
+    "Id": 11,
+    "Name": "Chicken",
+    "Description": "Roll",
+    "Price": 12.99,
+    "StockQuantity": 1
+  },
+  {
+    "Id": 362013665,
+    "Name": "Apple",
+    "Description": "Pie",
+    "Price": 1,
+    "StockQuantity": 1
+  },
+  {
+    "Id": 2008345457,
+    "Name": "",
+    "Description": "",
+    "Price": 1,
+    "StockQuantity": 1
+  }
+]
