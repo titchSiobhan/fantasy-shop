@@ -3,6 +3,7 @@ using fantasy_shop.Models;
 using Microsoft.AspNetCore.Mvc;
 using fantasy_shop.Controllers;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
 
 namespace fantasy_shop.Endpoints
 {
@@ -24,31 +25,29 @@ namespace fantasy_shop.Endpoints
             app.MapPut("/product/{Id}/edit", UpdateItem);
         }
 
-        private static IResult GetShop(
-     [FromServices] ItemData data,
-     string? search)
+        private static async Task<IResult> GetShop([FromServices] ItemData data, string? search)
         {
-            var output = data.Items.AsEnumerable();
+            var items = await data.GetAll();
+            var output = items.AsEnumerable();
 
             if (!string.IsNullOrWhiteSpace(search))
-            {
-                output = output.Where(x =>
-                    x.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
-                
-            }
+                output = output.Where(x => x.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
 
             return Results.Ok(output);
         }
+
+        
 
         static async Task<IResult> AddNewProduct( Product product, [FromServices] ItemData data)
         {
 
             product.Id = CreateRandomId();
-            var item = data.Items.Find(x => x.Id == product.Id);
+            var items = await data.GetAll();
+            var item = items.Find(x => x.Id == product.Id);
             while (item != null)
             { 
                 product.Id = CreateRandomId();
-                item = data.Items.Find(x => x.Id == product.Id);
+                item =items.Find(x => x.Id == product.Id);
 
             }
                 if (product.Name == "" || product.Description == "")
@@ -60,18 +59,18 @@ namespace fantasy_shop.Endpoints
             {
                 return Results.BadRequest(new {message = "Prices and Stock amount must not be a negative number."});
             }
-            data.Items.Add(product);
-            await data.SaveToJson();
+            await data.Add(product);
+            //await data.SaveToJson();
 
             return Results.Created($"/product/{product.Id}", product);
         }
 
-        static IResult GetSingleProduct(int Id, [FromServices] ItemData data)
+        static async Task<IResult> GetSingleProduct(int Id, [FromServices] ItemData data)
         {
-            if (data?.Items == null)
-                return Results.NotFound();
+            var items = await data.GetAll();
+            
 
-            var item = data.Items.Find(x => x.Id == Id);
+             var item = items.Find(x => x.Id == Id);
             if (item == null)
                 return Results.NotFound();
 
@@ -80,15 +79,14 @@ namespace fantasy_shop.Endpoints
 
         static async Task<IResult> DeleteProduct(int Id, [FromServices] ItemData data)
         {
-            if (data?.Items == null)
-                return Results.NotFound();
 
-            var item = data.Items.Find(x => x.Id == Id);
+            var items = await data.GetAll();
+            var item = items.Find(x => x.Id == Id);
             if (item == null)
                 return Results.NotFound();
 
-            data.Items.Remove(item);
-            await data.SaveToJson();
+            await data.Remove(item);
+            //await data.SaveToJson();
 
             Console.WriteLine($"{item.Id} was deleted");
             return Results.Ok(new { message = $"{item.Name} was deleted." });
@@ -98,10 +96,9 @@ namespace fantasy_shop.Endpoints
 
         static async Task<IResult> UpdateItem(int Id, UpdateItemRequest request, [FromServices] ItemData data)
         {
-            if (data?.Items == null)
-                return Results.NotFound();
-
-            var item = data.Items.Find(x => x.Id == Id);
+           
+            var items = await data.GetAll();
+            var item = items.Find(x => x.Id == Id);
             if (item == null)
                 return Results.NotFound();
             if (string.IsNullOrWhiteSpace(item.Name) || string.IsNullOrWhiteSpace(item.Description) )
@@ -120,9 +117,29 @@ namespace fantasy_shop.Endpoints
             item.Price = request.Price;
             item.StockQuantity = request.StockQuantity;
 
-            await data.SaveToJson();
+            //await data.SaveToJson();
+            await data.Update(item);
 
             return Results.Ok(item);
         }
+
+        static async Task<IResult> ItemsBought(int Id, [FromServices] ItemData data)
+        {
+            var items = await data.GetAll();
+
+          
+            
+            var item = items.Find(x => x.Id == Id);
+            if (item == null)
+                return Results.NotFound();
+            if (item.StockQuantity <= 0)
+            {
+                return Results.BadRequest(new { message = "Item is out of stock." });
+            }
+            item.StockQuantity--;
+            await data.Update(item);
+           //await data.SaveToJson();
+            return Results.Ok(new { message = $"{item.Name} was bought. Remaining stock: {item.StockQuantity}" });
+        }   
     }
 }

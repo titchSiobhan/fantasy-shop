@@ -9,8 +9,8 @@ namespace fantasy_shop.Data
         {
         }
         public DbSet<User> Users {  get; set; }
-        public DbSet<Order> Orderss { get; set; }
+        public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
-        public DbSet<Product> Products { get; set; }
+        public DbSet<Product> Items { get; set; }
     }
 }

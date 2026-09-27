@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
 
 namespace fantasy_shop.Data
 {
@@ -7,11 +8,27 @@ namespace fantasy_shop.Data
     {
         public AppDbContext CreateDbContext(string[] args)
         {
-            var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true)
+                .AddJsonFile("appsettings.Development.json", optional: true)
+                .AddUserSecrets<AppDbContextFactory>(optional: true)
+                .AddEnvironmentVariables()
+                .Build();
 
-            optionsBuilder.UseNpgsql(
-                "Host=localhost;Port=5432;Database=fantasy_shop;Username=postgres;Password=postgres"
-            );
+            var connectionString =
+                configuration.GetConnectionString("DefaultConnection");
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException(
+                    "Connection string 'DefaultConnection' was not found.");
+            }
+
+            var optionsBuilder =
+                new DbContextOptionsBuilder<AppDbContext>();
+
+            optionsBuilder.UseNpgsql(connectionString);
 
             return new AppDbContext(optionsBuilder.Options);
         }

@@ -26,12 +26,5 @@
     "Description": "Pie",
     "Price": 1,
     "StockQuantity": 1
-  },
-  {
-    "Id": 2008345457,
-    "Name": "",
-    "Description": "",
-    "Price": 1,
-    "StockQuantity": 1
   }
 ]
